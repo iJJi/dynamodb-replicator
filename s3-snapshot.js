@@ -15,7 +15,9 @@ module.exports = function(config, done) {
 
     var s3Options = {
         httpOptions: {
-            timeout: 1000,
+            maxRetries: 3,
+            connectTimeout: 1000,
+            timeout: 60000,
             agent: new AgentKeepAlive.HttpsAgent({
                 keepAlive: true,
                 maxSockets: 256,
