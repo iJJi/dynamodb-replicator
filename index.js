@@ -125,9 +125,10 @@ function replicate(event, context, callback) {
 
 function incrementalBackup(event, context, callback) {
     var params = {
-        maxRetries: 1000,
+        maxRetries: 10,
         httpOptions: {
-            timeout: 1000,
+            timeout: 10000,
+            connectTimeout: 4000,
             agent: module.exports.agent
         }
     };
@@ -173,6 +174,7 @@ function incrementalBackup(event, context, callback) {
 
     q.awaitAll(function(err) {
         if (err) throw err;
+        console.log('Backed up ' + count + ' records');
         callback();
     });
 
@@ -228,7 +230,6 @@ function incrementalBackup(event, context, callback) {
 
         q.awaitAll(function(err) {
             if (err) return callback(err);
-            console.log('Backed up ' + count + ' records')
             callback();
         });
     }
