@@ -16,9 +16,8 @@ module.exports.streambotBackup = streambot(function(event, callback) {
 module.exports.snapshot = require('./s3-snapshot');
 module.exports.agent = new https.Agent({
     keepAlive: true,
-    maxSockets: Math.ceil(require('os').cpus().length * 16),
-    keepAliveMsecs: 60000
-})
+    maxSockets: 128
+});
 
 function replicate(event, context, callback) {
     var replicaConfig = {
@@ -26,9 +25,10 @@ function replicate(event, context, callback) {
         secretAccessKey: process.env.ReplicaSecretAccessKey || undefined,
         table: process.env.ReplicaTable,
         region: process.env.ReplicaRegion,
-        maxRetries: 1000,
+        maxRetries: 10,
         httpOptions: {
-            timeout: 2000,
+            timeout: 10000,
+            connectTimeout: 4000,
             agent: module.exports.agent
         }
     };

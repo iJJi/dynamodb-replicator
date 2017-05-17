@@ -2,7 +2,7 @@ var AWS = require('aws-sdk');
 var s3scan = require('s3scan');
 var zlib = require('zlib');
 var stream = require('stream');
-var AgentKeepAlive = require('agentkeepalive');
+var main = require('./index');
 
 module.exports = function(config, done) {
     var log = config.log || console.log;
@@ -15,14 +15,10 @@ module.exports = function(config, done) {
 
     var s3Options = {
         httpOptions: {
-            maxRetries: 3,
-            connectTimeout: 1000,
-            timeout: 60000,
-            agent: new AgentKeepAlive.HttpsAgent({
-                keepAlive: true,
-                maxSockets: 256,
-                keepAliveTimeout: 60000
-            })
+            maxRetries: 10,
+            timeout: 10000,
+            connectTimeout: 4000,
+            agent: main.agent
         }
     };
     if (config.maxRetries) s3Options.maxRetries = config.maxRetries;

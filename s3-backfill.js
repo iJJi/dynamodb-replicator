@@ -3,22 +3,17 @@ var AWS = require('aws-sdk');
 var stream = require('stream');
 var queue = require('queue-async');
 var crypto = require('crypto');
-var https = require('https');
+var main = require('./index');
 
 module.exports = backfill;
 
-module.exports.agent = new https.Agent({
-    keepAlive: true,
-    maxSockets: Math.ceil(require('os').cpus().length * 16),
-    keepAliveMsecs: 60000
-});
-
 function backfill(config, done) {
     var s3 = new AWS.S3({
-        maxRetries: 1000,
+        maxRetries: 10,
         httpOptions: {
-            timeout: 1000,
-            agent: module.exports.agent
+            timeout: 10000,
+            connectTimeout: 4000,
+            agent: main.agent
         }
     });
 
