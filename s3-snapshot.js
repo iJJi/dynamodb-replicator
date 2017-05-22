@@ -27,10 +27,10 @@ module.exports = function(config, done) {
     var s3 = new AWS.S3(s3Options);
 
     var size = 0;
-    var uri = ['s3:/', config.source.bucket, config.source.prefix].join('/');
-    var partsLoaded = -1;
+    var srcUri = ['s3:/', config.source.bucket, config.source.prefix].join('/');
+    var dstUri = ['s3:/', config.destination.bucket, config.destination.key].join('/');
 
-    var objStream = s3scan.Scan(uri, { s3: s3 })
+    var objStream = s3scan.Scan(srcUri, { s3: s3 })
         .on('error', function(err) { done(err); });
     var gzip = zlib.createGzip()
         .on('error', function(err) { done(err); });
@@ -49,15 +49,11 @@ module.exports = function(config, done) {
         Key: config.destination.key,
         Body: gzip
     }).on('httpUploadProgress', function(details) {
-        if (details.part !== partsLoaded) {
-            log(
-                'Starting upload of part #%s, %s bytes uploaded, %s items uploaded @ %s items/s',
-                details.part - 1, size,
-                objStream.got, objStream.rate()
-            );
-        }
-
-        partsLoaded = details.part;
+        log(
+            'Upload part #%s, %s bytes, %s items @ %s items/s to %s',
+            details.part, details.loaded, objStream.got, objStream.rate(),
+            dstUri
+        );
         size = details.loaded;
     }).on('error', function(err) { done(err); });
 
@@ -71,9 +67,7 @@ module.exports = function(config, done) {
 
     upload.send(function(err) {
         if (err) return done(err);
-
-        log('Uploaded snapshot to s3://%s/%s', config.destination.bucket, config.destination.key);
-        log('Wrote %s items and %s bytes to snapshot', objStream.got, size);
-        done(null, { size: size, count: objStream.got });
+        log('Wrote %s items and %s bytes to %s', objStream.got, size, dstUri);
+        done(null, { size: size, count: objStream.got, rate: objStream.rate(), source: srcUri, destination: dstUri });
     });
 };
