@@ -13,6 +13,13 @@ module.exports = function(config, done) {
     if (!config.destination || !config.destination.bucket || !config.destination.key)
         return done(new Error('Must provide destination bucket and key where the snapshot will be put'));
 
+    if (!config.transform) {
+        config.transform = function(data, enc, callback) {
+            if (!data) return callback();
+            callback(null, data.Body.toString() + '\n');
+        };
+    }
+
     var s3Options = {
         httpOptions: {
             maxRetries: 10,
@@ -37,10 +44,7 @@ module.exports = function(config, done) {
 
     var stringify = new stream.Transform();
     stringify._writableState.objectMode = true;
-    stringify._transform = function(data, enc, callback) {
-        if (!data) return callback();
-        callback(null, data.Body.toString() + '\n');
-    };
+    stringify._transform = config.transform;
 
     var upload = s3.upload({
         ServerSideEncryption: process.env.ServerSideEncryption || 'AES256',
