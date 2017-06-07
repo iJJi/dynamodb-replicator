@@ -46,9 +46,18 @@ module.exports = function(config, done) {
     stringify._writableState.objectMode = true;
     stringify._transform = config.transform;
 
+    if (config.tagset)
+    {
+        // The upload() method Tagging parameter requires a valid URI formatted string
+        var tagging = config.tagset.map(function(t){ return t.Key + '=' + encodeURIComponent(t.Value); }).join('&');
+    }
+
     var upload = s3.upload({
         ServerSideEncryption: process.env.ServerSideEncryption || 'AES256',
         SSEKMSKeyId: process.env.SSEKMSKeyId,
+        ContentEncoding: 'gzip',
+        ContentType: config.contentType || 'application/json',
+        Tagging: tagging,
         Bucket: config.destination.bucket,
         Key: config.destination.key,
         Body: gzip

@@ -92,7 +92,11 @@ test('[s3-snapshot]', function(assert) {
             bucket: bucket,
             key: snapshotKey
         },
-        logger: fs.createWriteStream(log)
+        logger: fs.createWriteStream(log),
+        tagset: [
+            {Key: 'one', Value: 1},
+            {Key: 'k:two', Value: '1 + 1 = 2'}
+        ]
     };
 
     snapshot(config, function(err, details) {
