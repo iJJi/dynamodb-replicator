@@ -52,7 +52,7 @@ module.exports = function(config, done) {
         var tagging = config.tagset.map(function(t){ return t.Key + '=' + encodeURIComponent(t.Value); }).join('&');
     }
 
-    var upload = s3.upload({
+    var uploadParams = {
         ServerSideEncryption: process.env.ServerSideEncryption || 'AES256',
         SSEKMSKeyId: process.env.SSEKMSKeyId,
         ContentEncoding: 'gzip',
@@ -61,7 +61,11 @@ module.exports = function(config, done) {
         Bucket: config.destination.bucket,
         Key: config.destination.key,
         Body: gzip
-    }).on('httpUploadProgress', function(details) {
+    };
+    var uploadOptions = {
+        partSize: 10 * 1024 * 1024
+    };
+    var upload = s3.upload(uploadParams, uploadOptions).on('httpUploadProgress', function(details) {
         log(
             'Upload part #%s, %s bytes, %s items @ %s items/s to %s',
             details.part, details.loaded, objStream.got, objStream.rate(),
