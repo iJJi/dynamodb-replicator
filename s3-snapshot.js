@@ -63,7 +63,7 @@ module.exports = function(config, done) {
         Body: gzip
     };
     var uploadOptions = {
-        partSize: 10 * 1024 * 1024
+        partSize: 1 * 1024 * 1024
     };
     var upload = s3.upload(uploadParams, uploadOptions).on('httpUploadProgress', function(details) {
         log(
